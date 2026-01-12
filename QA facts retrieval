@@ -1,0 +1,32 @@
+import faiss
+import pickle
+import numpy as np
+from config import FAISS_INDEX_PATH, MAPPING_PATH
+from utils.db_utils import get_connection
+
+index = faiss.read_index(FAISS_INDEX_PATH)
+with open(MAPPING_PATH, "rb") as f:
+    mapping = pickle.load(f)
+
+def semantic_query(query, top_k=5):
+    from openai import OpenAI
+    from config import OPENAI_API_KEY
+    client = OpenAI(api_key=OPENAI_API_KEY)
+
+    qvec = np.array(client.embeddings.create(
+        model="text-embedding-3-large", input=query
+    ).data[0].embedding, dtype="float32")
+
+    distances, indices = index.search(np.array([qvec]), top_k)
+    results = []
+    conn = get_connection()
+    c = conn.cursor()
+
+    for idx in indices[0]:
+        fid = mapping.get(idx)
+        if not fid: continue
+
+        c.execute("SELECT source, title, url, date_published, content FROM facts WHERE id=%s", (fid,))
+        results.append(c.fetchone())
+    conn.close()
+    return results
