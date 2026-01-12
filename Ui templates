@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Political Fact Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Political Fact Assistant (Live)</h1>
+        <form method="post" action="/ask">
+            <input type="text" name="question" placeholder="Ask a political question..." required>
+            <button type="submit">Ask</button>
+        </form>
+
+        {% if answer_data %}
+        <div class="reply">
+            <h3>You asked:</h3>
+            <p>{{ question }}</p>
+
+            <h3>AI Answer:</h3>
+            <p>{{ answer_data.answer }}</p>
+
+            {% if answer_data.contradictions %}
+            <h3>Contradictions Detected:</h3>
+            {% for c in answer_data.contradictions %}
+                <div class="flagged">
+                    <p><strong>Statement 1:</strong> {{ c.statement_1[4] }}</p>
+                    <p><strong>Statement 2:</strong> {{ c.statement_2[4] }}</p>
+                    <p><em>{{ c.reason }}</em></p>
+                    <hr>
+                </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
