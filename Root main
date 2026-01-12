@@ -1,0 +1,19 @@
+from apscheduler.schedulers.background import BackgroundScheduler
+from scrapers import white_house, congress
+from embeddings import embed_facts
+
+scheduler = BackgroundScheduler()
+
+def daily_update():
+    print("Running scheduled update...")
+    white_house.scrape_white_house()
+    congress.scrape_congress()
+    embed_facts.build_faiss_index()
+    print("Update complete.")
+
+scheduler.add_job(daily_update, "interval", hours=24)
+scheduler.start()
+
+import time
+while True:
+    time.sleep(60)
