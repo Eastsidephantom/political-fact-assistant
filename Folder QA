@@ -1,0 +1,33 @@
+from qa.contradiction_check import check_contradictions
+from openai import OpenAI
+from config import OPENAI_API_KEY
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+def answer_question_with_flags(question, top_k=5):
+    from qa.fact_retrieval import semantic_query
+
+    facts = semantic_query(question, top_k)
+    context = "\n\n".join(
+        f"{f[4]} (Source: {f[0]}, URL: {f[2]}, Date: {f[3]})"
+        for f in facts
+    )
+
+    prompt = f"""
+    Answer factually using ONLY the following official factual sources:
+
+    {context}
+
+    Question: {question}
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
+    )
+
+    answer = response.choices[0].message.content
+    contradictions = check_contradictions(question, top_k)
+
+    return {"answer": answer, "contradictions": contradictions}
