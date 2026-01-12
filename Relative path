@@ -1,0 +1,6 @@
+political-fact-assistant/   <- root
+├── ui/
+│   └── app.py
+├── main.py
+├── requirements.txt
+└── ...
