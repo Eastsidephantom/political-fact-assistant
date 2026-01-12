@@ -1,0 +1,35 @@
+from openai import OpenAI
+from config import OPENAI_API_KEY
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+def check_contradictions(question, top_k=5):
+    from qa.fact_retrieval import semantic_query
+    facts = semantic_query(question, top_k)
+    flagged = []
+
+    for i in range(len(facts)):
+        for j in range(i+1, len(facts)):
+            s1 = facts[i][4]
+            s2 = facts[j][4]
+            prompt = f"""
+            Do these statements contradict one another? Answer yes or no, with a short explanation.
+
+            Statement 1: {s1}
+            Statement 2: {s2}
+            """
+
+            res = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0
+            ).choices[0].message.content.lower()
+
+            if "yes" in res:
+                flagged.append({
+                    "statement_1": facts[i],
+                    "statement_2": facts[j],
+                    "reason": res
+                })
+
+    return flagged
