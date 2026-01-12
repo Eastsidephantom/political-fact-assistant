@@ -1,0 +1,32 @@
+import numpy as np
+import faiss
+import pickle
+from utils.db_utils import fetch_all_facts
+from openai import OpenAI
+from config import OPENAI_API_KEY, FAISS_INDEX_PATH, MAPPING_PATH
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+def get_embedding(text):
+    return np.array(client.embeddings.create(
+        model="text-embedding-3-large",
+        input=text
+    ).data[0].embedding, dtype="float32")
+
+def build_faiss_index():
+    facts = fetch_all_facts()
+    if not facts:
+        return
+
+    dim = 1536
+    index = faiss.IndexFlatL2(dim)
+    mapping = {}
+
+    for i, (fid, content) in enumerate(facts):
+        vec = get_embedding(content)
+        index.add(np.array([vec]))
+        mapping[i] = fid
+
+    faiss.write_index(index, FAISS_INDEX_PATH)
+    with open(MAPPING_PATH, "wb") as f:
+        pickle.dump(mapping, f)
