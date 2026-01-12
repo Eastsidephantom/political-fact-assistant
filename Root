@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+requests
+beautifulsoup4
+openai
+faiss-cpu
+numpy
+psycopg2-binary
+apscheduler
