@@ -1,0 +1,8 @@
+political-fact-assistant/
+│   app.py          <-- move here
+│   main.py
+│   requirements.txt
+│   config.py
+├── templates/
+├── static/
+...
