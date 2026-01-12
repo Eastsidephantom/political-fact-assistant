@@ -1,0 +1,11 @@
+import os
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://username:password@host:port/dbname"
+)
+
+FAISS_INDEX_PATH = "vectors/facts_index.faiss"
+MAPPING_PATH = "vectors/index_to_fact.pkl"
