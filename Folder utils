@@ -1,0 +1,47 @@
+import psycopg2
+from config import DATABASE_URL
+
+def get_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+def create_table():
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS facts (
+            id SERIAL PRIMARY KEY,
+            source TEXT,
+            title TEXT,
+            url TEXT UNIQUE,
+            date_published TIMESTAMP,
+            content TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def insert_fact(source, title, url, date_published, content):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO facts (source, title, url, date_published, content)
+        VALUES (%s,%s,%s,%s,%s) ON CONFLICT (url) DO NOTHING
+    """, (source, title, url, date_published, content))
+    conn.commit()
+    conn.close()
+
+def get_existing_urls(source):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT url FROM facts WHERE source=%s", (source,))
+    urls = [row[0] for row in c.fetchall()]
+    conn.close()
+    return urls
+
+def fetch_all_facts():
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT id, content FROM facts")
+    rows = c.fetchall()
+    conn.close()
+    return rows
